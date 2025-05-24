@@ -61,6 +61,7 @@ class AuthController extends Controller
 
     public function getUser()
     {
-        return response()->json(User::all());
+        // return response()->json(User::all());
+        return response()->json(['message' => 'Tested']);
     }
 }
