@@ -1,27 +1,23 @@
 <?php
 
-namespace App\Http\Controllers\Api\Category;
+namespace App\Http\Controllers\Api\Budget;
 
 use App\Http\Controllers\Controller;
-use App\Models as DefaultModel;
-use App\Models\Category;
-use App\Models\Transaction;
+use App\Models\Budget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class CategoryController extends Controller
+class BudgetController extends Controller
 {
-    // function __construct()
-    // {
-    //     $this->middleware('permission:kpi-view', ['only' => ['index', 'show', 'edit', 'createKPI', 'modalAlgorithmGroup']]);
-    // }
-
     public function validator($request)
     {
         $dataRequest = Validator::make($request->all(), [
+            'category_id' => 'required',
             'name' => 'required',
-            'description' => 'nullable'
+            'amount' => 'required',
+            'start_date' => 'required',
+            'end_date' => 'required',
         ]);
 
         if ($dataRequest->fails()) {
@@ -32,22 +28,22 @@ class CategoryController extends Controller
             ], 422)->send();
             exit;
         }
-    
+
         return $dataRequest->validated();
     }
-    
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         try {
-            $categories = Category::select('categories.*')
+            $bills = Budget::select('budgets.*', 'categories.name as category')
+                ->leftJoin('categories', 'budgets.category_id', '=', 'categories.id')
                 ->when($request->name, function ($query) use ($request) {
-                    return $query->where('name', 'like', '%' . $request->name . '%');
+                    return $query->where('budgets.name', 'like', '%' . $request->name . '%');
                 })
-                ->get();
-                
+                ->latest()->get();
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
@@ -55,12 +51,12 @@ class CategoryController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    
+
         return response()->json([
             'status' => 200,
-            'message' => 'Data kategori berhasil diambil',
-            'count' => count($categories),
-            'data' => $categories
+            'message' => 'Data Tagihan berhasil diambil',
+            'count' => count($bills),
+            'data' => $bills
         ], 200);
     }
 
@@ -81,19 +77,22 @@ class CategoryController extends Controller
 
         DB::beginTransaction();
         try {
-            $requestValidated['table_name'] = DefaultModel::class;
+            $requestValidated['wallet_id'] = 1;
+            $requestValidated['status_id'] = 1;
             $requestValidated['created_by'] = 1;
-            Category::create($requestValidated);
+            $requestValidated['updated_by'] = 0;
+
+            Budget::create($requestValidated);
 
             DB::commit();
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
 
             return response()->json([
                 'status' => 500,
                 'message' => 'Terjadi kesalahan',
                 'error' => $e->getMessage()
-            ], 500);            
+            ], 500);
         }
 
         return response()->json(self::showMessage(200, 'Success Created Data!'));
@@ -120,29 +119,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $requestValidated = $this->validator($request);
-
-        DB::beginTransaction();
-        try {
-            
-            $requestValidated['table_name'] = DefaultModel::class;
-            $requestValidated['created_by'] = 1;
-            
-            $category = Category::findOrFail($id);
-            $category->update($requestValidated);
-
-            DB::commit();
-        }catch(\Exception $e){
-            DB::rollback();
-
-            return response()->json([
-                'status' => 500,
-                'message' => 'Terjadi kesalahan',
-                'error' => $e->getMessage()
-            ], 500);            
-        }
-
-        return response()->json(self::showMessage(200, 'Success Updated Data!'));
+        //
     }
 
     /**
@@ -150,23 +127,6 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        DB::beginTransaction();
-        try {
-
-            $model = Category::findOrFail($id);
-            $model->delete();
-
-            DB::commit();
-        }catch(\Exception $e){
-            DB::rollback();
-
-            return response()->json([
-                'status' => 500,
-                'message' => 'Terjadi kesalahan',
-                'error' => $e->getMessage()
-            ], 500);            
-        }
-
-        return response()->json(self::showMessage(200, 'Success Deleted Data!'));
+        //
     }
 }

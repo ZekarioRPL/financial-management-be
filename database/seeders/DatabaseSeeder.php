@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Budget;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -14,7 +15,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            StatusSeeder::class,
+            // StatusSeeder::class,
+            // CategorySeeder::class,
+            // BillSeeder::class,
+            BudgetSeeder::class,
         ]);
     }
 }

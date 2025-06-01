@@ -39,13 +39,13 @@ class BillController extends Controller
     public function index(Request $request)
     {
         try {
-            $bills = Bill::select('bills.*', 'categories.name as category_name', 'statuses.name as status_name')
+            $bills = Bill::select('bills.*', 'categories.name as category', 'statuses.name as status_name')
                 ->leftJoin('categories', 'bills.category_id', '=', 'categories.id')
                 ->leftJoin('statuses', 'bills.category_id', '=', 'statuses.id')
                 ->when($request->name, function ($query) use ($request) {
                     return $query->where('bills.name', 'like', '%' . $request->name . '%');
                 })
-                ->get();
+                ->latest()->get();
                 
         } catch (\Exception $e) {
             return response()->json([
